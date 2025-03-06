@@ -33,7 +33,7 @@ public class ClientHandler extends Thread {
                 } else if (command.getFirst().equalsIgnoreCase("UPLOAD")) {
                     processUploadCommand(command, reader, socket.getInputStream(), writer);
                 } else if (command.getFirst().equalsIgnoreCase("DOWNLOAD")) {
-                    processDownloadCommand(command, writer, socket.getOutputStream());
+                    processDownloadCommand(command, writer, reader, socket.getOutputStream());
                 } else {
                     writer.println("Неизвестная команда");
                 }
@@ -49,7 +49,7 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public static void processDownloadCommand(List<String> command, PrintWriter writer, OutputStream outputStream) {
+    public static void processDownloadCommand(List<String> command, PrintWriter writer, BufferedReader reader, OutputStream outputStream) {
         if (command.size() < 2) {
             writer.println("ERROR: Invalid DOWNLOAD command format.");
             return;
@@ -66,8 +66,19 @@ public class ClientHandler extends Thread {
         writer.println("READY");
 
         try {
-            writer.println(file.length());
-            sendFile(outputStream, file);
+            // Проверяем, с какого места начать загрузку (передаем размер уже скачанного файла)
+            long fileSize = file.length();
+            writer.println(fileSize);
+
+            // Чтение размера данных, которые уже есть у клиента (если они есть)
+            String response = reader.readLine();
+            if (response.startsWith("RESUME")) {
+                long existingFileSize = Long.parseLong(response.split(" ")[1]);
+                sendFile(outputStream, file, existingFileSize);
+            } else {
+                sendFile(outputStream, file, 0);
+            }
+
             writer.println("DONE"); // Подтверждение завершения передачи файла
             writer.flush();
             System.out.println("Файл отправлен: " + fileName);
@@ -76,21 +87,22 @@ public class ClientHandler extends Thread {
         }
     }
 
-
-
-    private static void sendFile(OutputStream outputStream, File file) throws IOException {
+    private static void sendFile(OutputStream outputStream, File file, long offset) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            // Пропускаем часть файла, которая уже была отправлена
+            fileInputStream.skip(offset);
+
             byte[] buffer = new byte[4096];
             int bytesRead;
-            long totalBytesSent = 0;
+            long totalBytesSent = offset;
             long startTime = System.currentTimeMillis(); // Время начала передачи данных
 
             while ((bytesRead = fileInputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
                 totalBytesSent += bytesRead;
-
             }
-            long elapsedTime = System.currentTimeMillis() - startTime ;
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
             if (elapsedTime > 0) {
                 long bitRate = (totalBytesSent * 8) / elapsedTime;
                 System.out.printf("Битрейт: %.2f Kbps\n", bitRate / 1000.0); // выводим битрейт в Kbps
@@ -98,6 +110,7 @@ public class ClientHandler extends Thread {
             outputStream.flush();
         }
     }
+
 
 
     private static void processUploadCommand(List<String> command, BufferedReader reader, InputStream inputStream, PrintWriter writer) {

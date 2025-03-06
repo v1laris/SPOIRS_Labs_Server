@@ -24,7 +24,7 @@ public class TCPServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 clientSocket.setKeepAlive(true);
-                clientSocket.setSoTimeout(30000); // 30 секунд
+//                clientSocket.setSoTimeout(30000); // 30 секунд
 
                 System.out.println("Клиент подключился: " + clientSocket.getInetAddress());
 
