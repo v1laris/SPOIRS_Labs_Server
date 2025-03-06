@@ -64,10 +64,9 @@ public class ClientHandler extends Thread {
         }
 
         writer.println("READY");
-        writer.println(file.length());
-        writer.flush();
 
         try {
+            writer.println(file.length());
             sendFile(outputStream, file);
             writer.println("DONE"); // Подтверждение завершения передачи файла
             writer.flush();
@@ -83,12 +82,23 @@ public class ClientHandler extends Thread {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             byte[] buffer = new byte[4096];
             int bytesRead;
+            long totalBytesSent = 0;
+            long startTime = System.currentTimeMillis(); // Время начала передачи данных
+
             while ((bytesRead = fileInputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
+                totalBytesSent += bytesRead;
+
+            }
+            long elapsedTime = System.currentTimeMillis() - startTime ;
+            if (elapsedTime > 0) {
+                long bitRate = (totalBytesSent * 8) / elapsedTime;
+                System.out.printf("Битрейт: %.2f Kbps\n", bitRate / 1000.0); // выводим битрейт в Kbps
             }
             outputStream.flush();
         }
     }
+
 
     private static void processUploadCommand(List<String> command, BufferedReader reader, InputStream inputStream, PrintWriter writer) {
         if (command.size() < 2) {
@@ -110,12 +120,22 @@ public class ClientHandler extends Thread {
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 long totalRead = 0;
+                long startTime = System.currentTimeMillis(); // Время начала передачи
 
                 while (totalRead < fileSize && (bytesRead = inputStream.read(buffer)) != -1) {
                     fileOutputStream.write(buffer, 0, bytesRead);
                     totalRead += bytesRead;
                 }
+
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                if (elapsedTime > 500) { // Обновляем каждые 500 мс
+                    long bitRate = (totalRead * 8) / elapsedTime; // Битрейт в битах в секунду
+                    System.out.printf("Битрейт: %.2f Kbps\n", bitRate / 1000.0); // Выводим битрейт в Kbps
+                }
+                writer.println("DONE"); // Подтверждение завершения передачи файла
                 System.out.println("Success upload");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         } catch (IOException | NumberFormatException e) {
             System.out.println("error");
@@ -123,6 +143,7 @@ public class ClientHandler extends Thread {
             writer.flush();
         }
     }
+
 
     // todo Разобраться с размером
     private long readFileSize(BufferedReader reader) {
