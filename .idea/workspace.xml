@@ -5,14 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8d4d7170-4ce6-4b85-b745-e0950f897edb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyle-idea.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/ClientHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/TCPServer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server_files/tmp1.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server_files/tmp2.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server_files/tmp3.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/Constants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/ClientHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/TCPServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/TCPServer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +90,8 @@
       <updated>1739716838593</updated>
       <workItem from="1739716839622" duration="102000" />
       <workItem from="1739716953673" duration="662000" />
-      <workItem from="1741184861159" duration="1755000" />
+      <workItem from="1741184861159" duration="14271000" />
+      <workItem from="1741245501832" duration="3560000" />
     </task>
     <servers />
   </component>
