@@ -52,13 +52,14 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public static void processDownloadCommand(List<String> command, PrintWriter writer, BufferedReader reader, OutputStream outputStream) {
+    public static void processDownloadCommand(List<String> command, PrintWriter writer,
+                                              BufferedReader reader, OutputStream outputStream) {
         if (command.size() < 2) {
             writer.println("ERROR: Invalid DOWNLOAD command format.");
             return;
         }
         String fileName = command.get(1);
-        File file = new File(FILES_DIR, fileName);
+        File file = new File(Constants.FILES_DIR, fileName);
         if (!file.exists() || !file.isFile()) {
             writer.println("ERROR: File not found.");
             return;
@@ -88,30 +89,31 @@ public class ClientHandler extends Thread {
         }
     }
 
-
     private static void sendFile(OutputStream outputStream, File file, long offset) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            // Пропускаем часть файла, которая уже была отправлена
-            fileInputStream.skip(offset);
-
+        try (FileInputStream fis = new FileInputStream(file);
+             // Инициализируем прогресс-бар с полным размером файла
+             ProgressBar progressBar = new ProgressBar("Отправка", file.length())) {
+            // Пропускаем уже отправленные байты и обновляем прогресс
+            fis.skip(offset);
+            progressBar.stepTo(offset);
             byte[] buffer = new byte[4096];
             int bytesRead;
             long totalBytesSent = offset;
             long startTime = System.currentTimeMillis();
-
-            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+            while ((bytesRead = fis.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
                 totalBytesSent += bytesRead;
+                progressBar.stepBy(bytesRead);
             }
-
             long elapsedTime = System.currentTimeMillis() - startTime;
             if (elapsedTime > 0) {
                 long bitRate = (totalBytesSent * 8) / elapsedTime;
-                System.out.printf("Битрейт: %.2f Kbps\n", bitRate / 1000.0); // выводим битрейт в Kbps
+                System.out.printf("Битрейт: %.2f Kbps\n", bitRate / 1000.0);
             }
             outputStream.flush();
         }
     }
+
 
 
 
