@@ -142,10 +142,10 @@ public class ClientHandler extends Thread {
             System.out.printf("Существующая длина файла: %d", saveFileLen);
             System.out.printf("Клиентская длина файла: %d", fileSize);
 
-            if (saveFile.exists()) {
+            if (saveFile.exists()  && saveFile.length() == fileSize) {
                 String existingHash = computeFileHash(saveFile);
                 System.out.println("Хеш-сумма файла: " + existingHash);
-                if (existingHash.equals(expectedHash) && saveFile.length() == fileSize) {
+                if (existingHash.equals(expectedHash)) {
                     writer.println("FILE_EXISTS");
                     writer.flush();
                     String clientResponse = reader.readLine(); // Ожидаем ответ: REUPLOAD или SKIP
@@ -190,7 +190,8 @@ public class ClientHandler extends Thread {
                     if (saveFile.exists()) {
                         saveFile.delete();
                     }
-                    session = new UploadSession(clientId, fileName, fileSize, 0, expectedHash);
+                    long alreadyReceived = saveFile.exists() ? saveFile.length() : 0;
+                    session = new UploadSession(clientId, fileName, fileSize, alreadyReceived, expectedHash);
                     TCPServer.uploadSessions.put(sessionKey, session);
                 } else {
                     appendMode = true;
