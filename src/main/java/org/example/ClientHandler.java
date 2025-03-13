@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import me.tongfei.progressbar.ProgressBar;
@@ -133,6 +132,7 @@ public class ClientHandler extends Thread {
 
         writer.println("READY");
         writer.flush();
+        boolean appendMode = false;
 
         try {
             long fileSize = Long.parseLong(reader.readLine());
@@ -193,6 +193,7 @@ public class ClientHandler extends Thread {
                     session = new UploadSession(clientId, fileName, fileSize, 0, expectedHash);
                     TCPServer.uploadSessions.put(sessionKey, session);
                 } else {
+                    appendMode = true;
                     System.out.println("Продолжаем загрузку файла " + fileName + " от клиента " + clientId + " с " + session.getBytesReceived() + " байт.");
                 }
             } else {
@@ -202,7 +203,7 @@ public class ClientHandler extends Thread {
 
             writer.println(session.getBytesReceived());
 
-            try (FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(saveFile, appendMode);
                  ProgressBar progressBar = new ProgressBar("Загрузка", session.getExpectedFileSize())
             ) {
                 progressBar.stepTo(session.getBytesReceived());
