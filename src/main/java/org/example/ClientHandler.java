@@ -52,38 +52,52 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public static void processDownloadCommand(List<String> command, PrintWriter writer,
-                                              BufferedReader reader, OutputStream outputStream) {
+    private static boolean checkDownloadCommand(List<String> command, PrintWriter writer) {
         if (command.size() < 2) {
             writer.println("ERROR: Invalid DOWNLOAD command format.");
+            return false;
+        }
+        String fileName = command.get(1);
+        File file = new File(FILES_DIR, fileName);
+        if (!file.exists() || !file.isFile()) {
+            writer.println("ERROR: File not found.");
+            return false;
+        }
+        return true;
+    }
+
+    private static void handleDownloadResponse(String response, OutputStream outputStream,
+                                               File file, PrintWriter writer) throws IOException {
+        if (response.startsWith("RESUME")) {
+            long existingFileSize = Long.parseLong(response.split(" ")[1]);
+            sendFile(outputStream, file, existingFileSize);
+        } else if (response.startsWith("START")) {
+            sendFile(outputStream, file, 0);
+        } else if (response.startsWith("ABORT")) {
+            System.out.println("Скачивание отменено клиентом для файла: " + file.getName());
+            return;
+        } else {
+            writer.println("ERROR: Unknown resume option.");
+            return;
+        }
+        writer.println("DONE");
+        writer.flush();
+        System.out.println("Файл отправлен: " + file.getName());
+    }
+
+    public static void processDownloadCommand(List<String> command, PrintWriter writer,
+                                              BufferedReader reader, OutputStream outputStream) {
+        if (!checkDownloadCommand(command, writer)) {
             return;
         }
         String fileName = command.get(1);
-        File file = new File(Constants.FILES_DIR, fileName);
-        if (!file.exists() || !file.isFile()) {
-            writer.println("ERROR: File not found.");
-            return;
-        }
+        File file = new File(FILES_DIR, fileName);
         writer.println("READY");
         try {
             long fileSize = file.length();
             writer.println(fileSize);
             String response = reader.readLine();
-            if (response.startsWith("RESUME")) {
-                long existingFileSize = Long.parseLong(response.split(" ")[1]);
-                sendFile(outputStream, file, existingFileSize);
-            } else if (response.startsWith("START")) {
-                sendFile(outputStream, file, 0);
-            } else if (response.startsWith("ABORT")) {
-                System.out.println("Скачивание отменено клиентом для файла: " + fileName);
-                return;
-            } else {
-                writer.println("ERROR: Unknown resume option.");
-                return;
-            }
-            writer.println("DONE");
-            writer.flush();
-            System.out.println("Файл отправлен: " + fileName);
+            handleDownloadResponse(response, outputStream, file, writer);
         } catch (IOException e) {
             System.out.println("Ошибка при отправке файла: " + e.getMessage());
         }
@@ -91,9 +105,7 @@ public class ClientHandler extends Thread {
 
     private static void sendFile(OutputStream outputStream, File file, long offset) throws IOException {
         try (FileInputStream fis = new FileInputStream(file);
-             // Инициализируем прогресс-бар с полным размером файла
-             ProgressBar progressBar = new ProgressBar("Отправка", file.length())) {
-            // Пропускаем уже отправленные байты и обновляем прогресс
+            ProgressBar progressBar = new ProgressBar("Отправка", file.length())) {
             fis.skip(offset);
             progressBar.stepTo(offset);
             byte[] buffer = new byte[4096];
@@ -113,9 +125,6 @@ public class ClientHandler extends Thread {
             outputStream.flush();
         }
     }
-
-
-
 
     private void processUploadCommand(
             List<String> command,
