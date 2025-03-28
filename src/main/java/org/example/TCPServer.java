@@ -29,7 +29,6 @@ public class TCPServer {
                 Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress address = addresses.nextElement();
-                    // Фильтруем loopback-адреса (127.0.0.1) и проверяем, что это IPv4
                     if (!address.isLoopbackAddress() && address.getAddress().length == 4) {
                         System.out.println("Серверный IP-адрес: " + address.getHostAddress());
                     }

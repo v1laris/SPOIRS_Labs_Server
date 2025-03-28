@@ -275,7 +275,6 @@ public class ClientHandler extends Thread {
         writer.println(message);
     }
 
-    // Генерация нового имени файла вида: имя(1).расширение, имя(2).расширение, ...
     private static String generateCopyName(String originalName) {
         int dotIndex = originalName.lastIndexOf('.');
         String baseName = (dotIndex == -1) ? originalName : originalName.substring(0, dotIndex);
